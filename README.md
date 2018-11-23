@@ -32,7 +32,7 @@ You should not be concerned for the creation of the vehicle and package entries,
 ## Techinical overview:
  - The application is spring-boot microservice, 2.0.5.RELEASE version. 
  - Java 8 is used for development
- - Technologies: Spring, JPA, JMS, Maven, Docker
+ - Technologies: Spring, JPA, JMS, Quartz, Maven, Docker
  - Postgres database
  - ActiveMQ
  
