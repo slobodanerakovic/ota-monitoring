@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet"
+	href="http://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+	integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+	crossorigin="anonymous">
+
+<style type="text/css">
+.centered {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	/* bring your own prefixes */
+	transform: translate(-50%, -50%);
+}
+
+#map {
+	height: 400px;
+	background-color: grey;
+	border: 1px solid black;
+}
+
+#city-list {
+	list-style: none;
+}
+
+.hand {
+	cursor: pointer;
+}
+
+input {
+	width: 100px;
+}
+
+.invisible {
+	display: none;
+}
+
+.left-float {
+	float: left;
+}
+</style>
+</head>
+<body style="min-width: 2050px">
+	<div id="loading" class="text-center">
+		<h1 class="badge-danger text-center mt-5">Application is
+			loading...</h1>
+		<img src="loading.gif" class="centered">
+	</div>
+	<div id="main_container" class="invisible">
+		<h1 class="p2 badge-info text-center">ANALYTICS DASHBOARD</h1>
+
+		<div id="fleet_container"
+			class="mb-5 ml-5 mt-3 text-center left-float" style="width: 250px">
+			<h2 class="p2 badge-info text-center">Available Fleets</h2>
+			<div id="fleet-list"></div>
+			<br /> <a target="_blank" class="text-uppercase text-danger" href="coll_deploy_overview.jpg"><b><u>Collaboration/Deployment
+					Diagram</u></b></a>
+					<br /><br />
+					<a target="_blank" class="text-uppercase text-danger" href="forecast_assumptation_diagram.jpg"><b><u>Application Forecast Diagram</u></b></a>
+		</div>
+
+		<div id="vsdc" class="mb-5 mt-3 mx-5 left-float invisible">
+			<h2 class="p2 badge-info text-center">Fleets Vehicle</h2>
+
+			<table id="short-list"
+				class="table table-sm table-bordered table-striped text-center table-warning">
+				<tr>
+					<th class="text-center" valign="top"></th>
+					<th class="text-center" valign="top">FLEET ID</th>
+					<th class="text-center" valign="top">VEHICLE ID</th>
+					<th class="text-center" valign="top">MODEL</th>
+					<th class="text-center" valign="top">PURCHASE DATE</th>
+					<th class="text-center" valign="top">DETAILS</th>
+				</tr>
+
+			</table>
+		</div>
+
+		<div id="vehicle_desc" class="mt-3 left-float invisible">
+
+			<div id="vehicle_package_container">
+				<h2 class="p2 badge-info text-center">Vehicle's Packages</h2>
+
+				<table id="package-list"
+					class="table table-sm table-bordered table-striped text-center table-warning">
+					<tr>
+						<th class="text-center" valign="top"></th>
+						<th class="text-center" valign="top">PACKAGE NAME</th>
+						<th class="text-center" valign="top">VERSION</th>
+						<th class="text-center" valign="top">FEATURES</th>
+						<th class="text-center" valign="top">DOWNLOAD DATE</th>
+						<th class="text-center" valign="top">INSTALLMENT DATE</th>
+						<th class="text-center" valign="top">DOWNLOAD STATUS</th>
+						<th class="text-center" valign="top">INSTALLMENT STATUS</th>
+					</tr>
+
+				</table>
+			</div>
+			<div id="geolocation_container" class="mt-5">
+				<h2 class="p2 badge-info text-center">Vehicle's Location</h2>
+				<div id="map" class="mt-3"></div>
+			</div>
+		</div>
+	</div>
+	<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript">
+	
+		window.addEventListener('load', function(e) {
+			setTimeout(function() {
+				$("#loading").hide();
+				$("#main_container").removeClass('invisible');
+			}, 2000);
+			let googleMapManager = new GoogleMapManager();
+			let remoteDataManager = new RemoteDataManager(googleMapManager);
+	
+			remoteDataManager.initFleet();
+		});
+	
+		let map;
+		let markers = [];
+	
+		// Just used for init of map and google callback
+		function initMap() {
+			let center = {
+				lat : 52.190328,
+				lng : 5.966148
+			};
+			map = new google.maps.Map(document.getElementById('map'), {
+				zoom : 10,
+				center : center
+			});
+		}
+	
+		class GoogleMapManager {
+	
+			createMarker(geoData) {
+				let infowindow = new google.maps.InfoWindow({});
+				let marker;
+	
+				let center = {
+					lat : geoData.latitude,
+					long : geoData.longitude
+				}
+				marker = new google.maps.Marker({
+					icon : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+					position : new google.maps.LatLng(geoData.latitude, geoData.longitude),
+					map : map,
+					center : center,
+					title : 'hahahaha'
+				});
+				markers.push(marker);
+				map.setCenter(new google.maps.LatLng(geoData.latitude, geoData.longitude));
+	
+				google.maps.event.addListener(marker, 'click', (function(marker) {
+					return function() {
+						var content = 'SOME CONTENT';
+	
+						infowindow.setContent(content);
+						infowindow.open(map, marker);
+					}
+				})(marker));
+			}
+	
+			clearMarkers() {
+				for (var i = 0; i < markers.length; i++) {
+					markers[i].setMap(null);
+				}
+			}
+		}
+	
+		class RemoteDataManager {
+			constructor(googleMapManager) {
+				this.googleMapManager = googleMapManager;
+			}
+	
+			initFleet(remoteDataManager) {
+				let url = 'http://localhost:6789/ota-monitoring/analytics/fleet/list';
+				this.getRemoteJsonDataV2(url);
+			}
+	
+			getRemoteJsonDataV2(url, isShort) {
+	
+				let self = this;
+				$.getJSON(encodeURI(url), function(data) {
+	
+					if (typeof data[0] === 'string') {
+	
+						$.each(data, function(i, fleet) {
+	
+							$('#fleet-list').append("<b><label>Fleet: </label><button class='btn-primary hand m-2 p-2' id='" + fleet + "'>" + fleet + "</button></b><br />");
+							$("#" + fleet).click(function() {
+								let url = 'http://localhost:6789/ota-monitoring/analytics/vehicle/list/' + fleet;
+								self.getRemoteJsonDataV2(url, true);
+	
+								$("#fleet-list button").removeClass("btn-danger");
+								$("#" + fleet).addClass("btn-danger");
+							});
+						});
+					} else {
+						self.googleMapManager.clearMarkers();
+	
+						$("#vsdc").removeClass('invisible');
+						$("#vsdc").show();
+						if (isShort) {
+							$(".appender").empty();
+							$("#vehicle_desc").hide();
+	
+							$.each(data, function(i, short) {
+	
+								$('<tr class="appender">').append(
+									$('<td>').text(i),
+									$('<td>').text(short.feetId),
+									$('<td class=' + short.id + '>').text(short.vehicleId),
+									$('<td>').text(short.model),
+									$('<td>').text(short.purchaseDate),
+									$('<td>').html("<button class='btn-primary hand p-2' id='" + short.id + "'>DETAILS</button>")
+								).appendTo('#short-list');
+	
+								$("#" + short.id).click(function() {
+									let url = 'http://localhost:6789/ota-monitoring/analytics/vehicle/details/' + short.id;
+									self.getRemoteJsonDataV2(url);
+	
+									$(".appender td button").removeClass("btn-danger");
+									$(".appender td").removeClass("btn-danger");
+	
+									$("#" + short.id).addClass("btn-danger");
+									$("." + short.id).addClass("btn-danger");
+								});
+							});
+						} else {
+							$("#vehicle_desc").removeClass('invisible');
+							$("#vehicle_desc").show();
+							$(".appender2").empty();
+	
+							//details
+							$.each(data.vehiclePackageDTOs, function(i, packageDTO) {
+								$('<tr class="appender2">').append(
+									$('<td>').text(i),
+									$('<td>').text(packageDTO.packageName),
+									$('<td>').text(packageDTO.packageVersion),
+									$('<td>').text(packageDTO.featureList),
+									$('<td>').text(packageDTO.downloadDate),
+									$('<td>').text(packageDTO.installmentDate),
+									$('<td>').text(packageDTO.successDownload),
+									$('<td>').text(packageDTO.successInstallment)
+								).appendTo('#package-list');
+							});
+	
+							$.each(data.geoLocationInfoDTOs, function(i, geoDTO) {
+								self.googleMapManager.createMarker(geoDTO);
+							});
+						}
+					}
+				})
+			}
+		}
+	</script>
+	<script async defer
+		src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB9JmGfsLaZhMnl4HaopfqiqgDCWLhO_BA&callback=initMap">
+		</script>
+</body>
+</html>
+
