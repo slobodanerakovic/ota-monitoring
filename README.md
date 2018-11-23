@@ -27,6 +27,8 @@ You should not be concerned for the creation of the vehicle and package entries,
 <br /><br />**END REQUIREMENT**
 <br /><br />
 **NOTE:** Docker deployment process has been tested on Ubuntu 16.04 from local docker repository scratch.<br />
+
+File: **Architecture Documentation.pdf** conains architectural overview of the application, as a response to delivered requirements <br /> <br />
 This manual contains instructions for environment configuration, application deployment and usage. <br />
 **If you do not have installed docker, go to section - NO DOCKER README, within this file**<br />
 I am using docker for environment setup, so all you need is installed **docker** on your machine.<br />
