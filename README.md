@@ -1,5 +1,6 @@
 # ota-monitoring : 24 September, 2018
 ## Architecture of backend to vehicle communications for Tesla Motors, along with the analytical suite for the vehicle generated data and the Over-The-Air (OTA) software update system
+
 **REQUIREMENT** <br /><br />
 Architecture
 
@@ -25,6 +26,16 @@ The on-vehicle part of the OTA system should acknowledge the correct download of
 
 You should not be concerned for the creation of the vehicle and package entries, you can assume that they are already handled from an ERP system. In our example you can add the entries manually. Your concern is the release of a new package version and the subsequent installation in the vehicle fleet. 
 <br /><br />**END REQUIREMENT**
+
+<br /><br />
+
+## Techinical overview:
+ - The application is spring-boot microservice, 2.0.5.RELEASE version. 
+ - Java 8 is used for development
+ - Technologies: Spring, JPA, JMS, Maven, Docker
+ - Postgres database
+ - ActiveMQ
+ 
 <br /><br />
 **NOTE:** Docker deployment process has been tested on Ubuntu 16.04 from local docker repository scratch.<br />
 
